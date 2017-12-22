@@ -941,6 +941,7 @@ class Wallet(object):
                                             bid, certificate_id, claim_address, change_address)
 
         if not claim['success']:
+            log.error(claim)
             msg = 'Claim to name {} failed: {}'.format(name, claim['reason'])
             raise Exception(msg)
 
@@ -1318,6 +1319,8 @@ class LBRYumWallet(Wallet):
                         "please follow instructions here: "
                         "https://github.com/lbryio/lbry/issues/437 to reduce your wallet size",
                         addr_count)
+        else:
+            log.info("Wallet has %i addresses", addr_count)
 
     def _load_blockchain(self):
         blockchain_caught_d = defer.Deferred()
