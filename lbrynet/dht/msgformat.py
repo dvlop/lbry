@@ -7,6 +7,7 @@
 # The docstrings in this module contain epytext markup; API documentation
 # may be created by processing this file with epydoc: http://epydoc.sf.net
 
+from lbrynet.conf import COMPAT_VERSION
 import msgtypes
 
 
@@ -43,10 +44,13 @@ class MessageTranslator(object):
 class DefaultFormat(MessageTranslator):
     """ The default on-the-wire message format for this library """
     typeRequest, typeResponse, typeError = range(3)
-    headerType, headerMsgID, headerNodeID, headerNodeIP, headerNodePort = range(5)
-    headerPayload, headerArgs = range(5, 7)
+    headerCompVer, headerType, headerMsgID, headerNodeID, headerNodeIP, headerNodePort = range(6)
+    headerPayload, headerArgs = range(6, 8)
 
     def fromPrimitive(self, msgPrimitive):
+        if msgPrimitive[self.headerCompVer] != COMPAT_VERSION:
+            return
+
         msgType = msgPrimitive[self.headerType]
         ip = ".".join([str(ord(d)) for d in msgPrimitive[self.headerNodeIP][:4]])
         if msgType == self.typeRequest:
@@ -78,7 +82,8 @@ class DefaultFormat(MessageTranslator):
 
     def toPrimitive(self, message):
         nodeIPQuad = message.nodeIP.split('.')
-        msg = {self.headerMsgID: message.id,
+        msg = {self.headerCompVer: COMPAT_VERSION,
+               self.headerMsgID: message.id,
                self.headerNodeID: message.nodeID,
                self.headerNodeIP: ".".join([bin(int(x) + 256)[3:] for x in nodeIPQuad]),
                self.headerNodePort: message.nodePort}
